@@ -3,14 +3,20 @@
 #elif __has_include("RNOpusTurboSpecJSI.h")
 #include "RNOpusTurboSpecJSI.h"
 #endif
+
+#if __has_include("opus/opus.h")
 #include "opus/opus.h"
+#elif __has_include("opus.h")
+#include "opus.h"
+#endif
+
 #include <map>
 #include <vector>
 #include <chrono>
 #include <string>
 
 namespace facebook::react {
-class NativeOpusTurboModule: public NativeOpusCxxSpec<NativeOpusTurboModule> {
+class NativeOpusTurboModule: public NativeOpusTurboCxxSpec<NativeOpusTurboModule> {
 public:
     NativeOpusTurboModule(std::shared_ptr<CallInvoker> jsInvoker);
     std::string reverseString(jsi::Runtime &rt, std::string str);

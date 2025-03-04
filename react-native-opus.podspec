@@ -32,7 +32,7 @@ Pod::Spec.new do |s|
       s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
       s.pod_target_xcconfig    = {
           # "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
-          "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" \"${PODS_TARGET_SRCROOT}/cpp\" \"${PODS_TARGET_SRCROOT}\"",
+          "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" \"${PODS_TARGET_SRCROOT}/cpp\"",
           "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
       }
