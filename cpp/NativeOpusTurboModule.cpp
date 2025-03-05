@@ -6,7 +6,7 @@
 namespace facebook::react {
 
 NativeOpusTurboModule::NativeOpusTurboModule(std::shared_ptr<CallInvoker> jsinvoker)
-    : NativeOpusTurboCxxSpec(std::move(jsinvoker)) {}
+    : NativeOpusCxxSpec(std::move(jsinvoker)) {}
 
 std::string NativeOpusTurboModule::reverseString(jsi::Runtime &rt, std::string str) {
     std::reverse(str.begin(), str.end());

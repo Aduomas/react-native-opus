@@ -16,8 +16,9 @@
 #include <string>
 
 namespace facebook::react {
-class NativeOpusTurboModule: public NativeOpusTurboCxxSpec<NativeOpusTurboModule> {
+class NativeOpusTurboModule: public NativeOpusCxxSpec<NativeOpusTurboModule> {
 public:
+    static constexpr const char* kModuleName = "OpusTurbo";
     NativeOpusTurboModule(std::shared_ptr<CallInvoker> jsInvoker);
     std::string reverseString(jsi::Runtime &rt, std::string str);
     std::vector<int> getNumbers(jsi::Runtime &rt);
