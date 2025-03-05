@@ -14,6 +14,13 @@
 #include <vector>
 #include <chrono>
 #include <string>
+#include <algorithm>
+#include <cstdlib>
+
+#include <jsi/jsi.h>
+#include <ReactCommon/CallInvoker.h>
+
+
 
 namespace facebook::react {
 class NativeOpusTurboModule: public NativeOpusCxxSpec<NativeOpusTurboModule> {

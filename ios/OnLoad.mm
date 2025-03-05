@@ -9,7 +9,7 @@
 
 +(void) load {
     facebook::react::registerCxxModuleToGlobalModuleMap(
-                                                        std::string("OpusTurbo"),,
+                                                        std::string(facebook::react::NativeOpusTurboModule::kModuleName),
                                                         [](std::shared_ptr<facebook::react::CallInvoker> jsInvoker) {
                                                             return std::make_shared<facebook::react::NativeOpusTurboModule>(jsInvoker);
                                                         }
