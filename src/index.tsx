@@ -112,7 +112,8 @@ export async function decodeOpusFrame(
   // Ensure the input is an ArrayBuffer for the JSI function.
   const buffer = frameData instanceof ArrayBuffer ? frameData : frameData.buffer;
   
-  const result = global.__decodeOpusFrame(buffer);
+  // FIX #1: Cast the 'ArrayBufferLike' type to the specific 'ArrayBuffer' type we promised.
+  const result = global.__decodeOpusFrame(buffer as ArrayBuffer);
   
   if (result.success && result.data) {
     return new Float32Array(result.data);
@@ -140,8 +141,9 @@ export async function saveDecodedDataAsWav(
   
   const format = pcmData instanceof Int16Array ? 'int16' : 'float32';
   
+  // FIX #2: Cast the 'ArrayBufferLike' type to the specific 'ArrayBuffer' type we promised.
   const result = global.__saveArrayBufferAsWav(
-    pcmData.buffer,
+    pcmData.buffer as ArrayBuffer,
     filepath,
     sampleRate,
     channels,
