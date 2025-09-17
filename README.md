@@ -1,16 +1,16 @@
-# rn-stream-opus
+# react-native-opus
 
 A React Native library optimized for real-time Opus audio streaming with frame-by-frame decoding capabilities. Built specifically for streaming audio applications that require low-latency, persistent decoder state.
 
 ## Installation
 
 ```sh
-npm install rn-stream-opus
+npm install react-native-opus
 ```
 
 ## Usage
 
-The `rn-stream-opus` library provides efficient frame-by-frame Opus decoding with persistent decoder state, perfect for real-time audio streaming applications.
+The `react-native-opus` library provides efficient frame-by-frame Opus decoding with persistent decoder state, perfect for real-time audio streaming applications.
 
 ## API Methods
 
@@ -33,7 +33,7 @@ import {
   initializeStreamDecoder, 
   decodeOpusFrame, 
   resetOpusStreamDecoder 
-} from 'rn-stream-opus';
+} from 'react-native-opus';
 
 async function streamDecodeAudio() {
   try {
@@ -71,7 +71,7 @@ streamDecodeAudio();
 import { 
   initializeStreamDecoder, 
   decodeOpusFrame 
-} from 'rn-stream-opus';
+} from 'react-native-opus';
 
 class OpusStreamer {
   constructor() {
