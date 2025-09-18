@@ -1,18 +1,20 @@
 #import "NativeOpusTurboModule.h"
 #import <Foundation/Foundation.h>
 #import <ReactCommon/CxxTurboModuleUtils.h>
+#import <ReactCommon/RCTTurboModuleWithJSIBindings.h>
 
-@interface OnLoad : NSObject // Class name doesn't strictly matter
+@interface OnLoad : NSObject
 @end
+
 @implementation OnLoad
 
-+(void) load {
++ (void)load {
     facebook::react::registerCxxModuleToGlobalModuleMap(
-                                                        std::string(facebook::react::NativeOpusTurboModule::kModuleName),
-                                                        [](std::shared_ptr<facebook::react::CallInvoker> jsInvoker) {
-                                                            return std::make_shared<facebook::react::NativeOpusTurboModule>(jsInvoker);
-                                                        }
-                                                        );
+        std::string(facebook::react::NativeOpusTurboModule::kModuleName),
+        [](std::shared_ptr<facebook::react::CallInvoker> jsInvoker) {
+            return std::make_shared<facebook::react::NativeOpusTurboModule>(jsInvoker);
+        }
+    );
 }
 
 @end

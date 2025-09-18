@@ -2,48 +2,35 @@ import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
+  initializeStreamDecoder(sampleRate: number, channels: number): { success: boolean; error?: string };
+  resetDecoderState(): { success: boolean; error?: string };
+  resetOpusStreamDecoder(): { success: boolean; error?: string };
+}
 
-  decodeMultipleOpusPackets(
-    packetsBase64: string,
-    packetSize: number
-  ): Promise<{
+declare global {
+  function __decodeMultipleOpusPackets(buffer: ArrayBuffer, packetSize: number): {
     success: boolean;
-    decodedDataBase64?: string;
-    samplesDecoded?: number;
-    packetsDecoded?: number;
-    processingTimeMs?: number;
+    data?: ArrayBuffer;
     error?: string;
-  }>;
-
-  resetDecoderState(): Promise<{ success: boolean; error?: string }>;
-
-  saveDecodedDataAsWav(
-    decodedDataBase64: string,
+  };
+  
+  function __decodeOpusFrame(frameBuffer: ArrayBuffer): {
+    success: boolean;
+    data?: ArrayBuffer;
+    error?: string;
+  };
+  
+  function __saveArrayBufferAsWav(
+    buffer: ArrayBuffer,
     filepath: string,
     sampleRate: number,
-    channels: number
-  ): Promise<{
+    channels: number,
+    format: string
+  ): {
     success: boolean;
     filepath?: string;
     error?: string;
-  }>;
-
-  // Frame-by-frame streaming methods
-  initializeStreamDecoder(
-    sampleRate: number,
-    channels: number
-  ): Promise<{ success: boolean; error?: string }>;
-
-  decodeOpusFrame(
-    base64Frame: string
-  ): Promise<{
-    success: boolean;
-    pcmData?: Float32Array;
-    samplesDecoded?: number;
-    error?: string;
-  }>;
-
-  resetOpusStreamDecoder(): Promise<{ success: boolean; error?: string }>;
+  };
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('OpusTurbo');

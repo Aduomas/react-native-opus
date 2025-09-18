@@ -1,57 +1,111 @@
 import OpusTurboModule from './NativeOpusTurboModule';
 
-export function decodeMultipleOpusPackets(
-  packetsBase64: string,
+declare global {
+  function __decodeMultipleOpusPackets(
+    buffer: ArrayBuffer,
+    packetSize: number
+  ): {
+    success: boolean;
+    data?: ArrayBuffer;
+    error?: string;
+  };
+
+  function __decodeOpusFrame(
+    buffer: ArrayBuffer
+  ): {
+    success: boolean;
+    data?: ArrayBuffer;
+    error?: string;
+  };
+
+  function __saveArrayBufferAsWav(
+    buffer: ArrayBuffer,
+    filepath: string,
+    sampleRate: number,
+    channels: number,
+    format: 'int16' | 'float32'
+  ): {
+    success: boolean;
+    filepath?: string;
+    error?: string;
+  };
+}
+
+const assertJSIFunction = (name: keyof typeof globalThis) => {
+  if (typeof global[name] !== 'function') {
+    throw new Error(
+      `JSI function '${name}' is not installed. Make sure the native module 'OpusTurbo' is linked correctly and the app was rebuilt.`
+    );
+  }
+};
+
+export async function decodeMultipleOpusPackets(
+  opusData: ArrayBuffer,
   packetSize: number
-): Promise<{
-  success: boolean;
-  decodedDataBase64?: string;
-  samplesDecoded?: number;
-  packetsDecoded?: number;
-  processingTimeMs?: number;
-  error?: string;
-}> {
-  return OpusTurboModule.decodeMultipleOpusPackets(packetsBase64, packetSize);
+): Promise<Int16Array> {
+  assertJSIFunction('__decodeMultipleOpusPackets');
+  
+  const result = global.__decodeMultipleOpusPackets(opusData, packetSize);
+  
+  if (result.success && result.data) {
+    return new Int16Array(result.data);
+  } else {
+    throw new Error(result.error || 'Unknown error during Opus batch decoding.');
+  }
 }
 
-export function resetDecoderState(): Promise<{ success: boolean; error?: string }> {
-  return OpusTurboModule.resetDecoderState();
-}
-
-export function saveDecodedDataAsWav(
-  decodedDataBase64: string,
-  filepath: string,
-  sampleRate: number,
-  channels: number
-): Promise<{
-  success: boolean;
-  filepath?: string;
-  error?: string;
-}> {
-  return OpusTurboModule.saveDecodedDataAsWav(decodedDataBase64, filepath, sampleRate, channels);
-}
-
-// Frame-by-frame streaming API
 export function initializeStreamDecoder(
   sampleRate: number,
   channels: number
-): Promise<{ success: boolean; error?: string }> {
+): { success: boolean; error?: string } {
   return OpusTurboModule.initializeStreamDecoder(sampleRate, channels);
 }
 
-export function decodeOpusFrame(
-  frameData: Uint8Array
-): Promise<{
-  success: boolean;
-  pcmData?: Float32Array;
-  samplesDecoded?: number;
-  error?: string;
-}> {
-  // Convert Uint8Array to base64 string for native module
-  const base64Frame = Buffer.from(frameData).toString('base64');
-  return OpusTurboModule.decodeOpusFrame(base64Frame);
+export async function decodeOpusFrame(
+  frameData: ArrayBuffer | Uint8Array
+): Promise<Float32Array> {
+  assertJSIFunction('__decodeOpusFrame');
+  
+  const buffer = frameData instanceof ArrayBuffer ? frameData : frameData.buffer;
+  
+  const result = global.__decodeOpusFrame(buffer as ArrayBuffer);
+  
+  if (result.success && result.data) {
+    return new Float32Array(result.data);
+  } else {
+    throw new Error(result.error || 'Unknown error during Opus frame decoding.');
+  }
 }
 
-export function resetOpusStreamDecoder(): Promise<{ success: boolean; error?: string }> {
+export async function saveDecodedDataAsWav(
+  pcmData: Int16Array | Float32Array,
+  filepath: string,
+  sampleRate: number,
+  channels: number
+): Promise<{ success: boolean; filepath?: string; error?: string }> {
+  assertJSIFunction('__saveArrayBufferAsWav');
+  
+  const format = pcmData instanceof Int16Array ? 'int16' : 'float32';
+  
+  const result = global.__saveArrayBufferAsWav(
+    pcmData.buffer as ArrayBuffer,
+    filepath,
+    sampleRate,
+    channels,
+    format
+  );
+  
+  if (result.success) {
+    return result;
+  } else {
+    throw new Error(result.error || 'Unknown error while saving WAV file.');
+  }
+}
+
+export function resetDecoderState(): { success: boolean; error?: string } {
+  return OpusTurboModule.resetDecoderState();
+}
+
+export function resetOpusStreamDecoder(): { success: boolean; error?: string } {
   return OpusTurboModule.resetOpusStreamDecoder();
 }

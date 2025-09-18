@@ -16,16 +16,21 @@ import {
   Alert,
   useColorScheme,
 } from 'react-native';
-import { 
-  decodeMultipleOpusPackets, 
-  initializeStreamDecoder, 
-  decodeOpusFrame, 
-  resetOpusStreamDecoder 
+import {
+  decodeMultipleOpusPackets,
+  initializeStreamDecoder,
+  decodeOpusFrame,
 } from 'react-native-opus';
+import { Buffer } from 'buffer'; // Import Buffer to handle Base64 decoding
 
-// Hardcoded base64 Opus string (replace with actual data if needed)
+// --- Data Preparation ---
+// The original hardcoded base64 Opus string.
 const BASE64_OPUS_STRING =
   'uA3h1qD6BNyQQaeaz4swEG+XHNgqhWbncGOgmzi4gqsM1711/j5+abgOBe9pOrbHBo5lmump9wE+3x91yI4/Yk4pK1LZUT11nOc50WV/1PS4DhEgJfmFU2BhZaj1QwuXqwdkP0mEby+/mm+pccXy9n7FSw/IJ6MsuBomEXSjlOJ238qLOTUfsRf0CLMq3247Amh+KA0LHBBJ1+GKZqVWWrgantUAwgPUMZuL+tVTI7gBTwupR3ea48LzdFuPS3yUMyHZ5FsAkSm4Dl6pFFnRR6LY+UCoMTBNb2DZHplGKtv/F+PK2XbW9fwgM4/PRK4q';
+
+// Decode the Base64 string into a raw binary buffer ONCE.
+// The .buffer property gives us the underlying ArrayBuffer needed by our JSI functions.
+const OPUS_ARRAY_BUFFER = Buffer.from(BASE64_OPUS_STRING, 'base64').buffer;
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -35,25 +40,28 @@ function App(): React.JSX.Element {
   const [isStreamLoading, setIsStreamLoading] = useState(false);
 
   const backgroundStyle = {
-    backgroundColor: isDarkMode ? '#000000' : '#F5F5F5', // Black or light gray
+    backgroundColor: isDarkMode ? '#000000' : '#F5F5F5',
     flex: 1,
   };
 
   const handleDecodePress = async () => {
     setIsLoading(true);
     setDecodedResult(null);
-    console.log('Attempting to decode...');
+    console.log('Attempting to decode ArrayBuffer...');
     try {
-      // Assuming the function returns a base64 string or similar serializable result
-      const result = await decodeMultipleOpusPackets(BASE64_OPUS_STRING, 40);
-      console.log('Decoding successful:', result);
-      // Displaying raw PCM data might not be meaningful, log it instead or process further
-      setDecodedResult('Decoding succeeded! Check console for raw data.');
-      // If result is directly displayable (e.g., string):
-      // setDecodedResult(typeof result === 'string' ? result : JSON.stringify(result));
+      // --- UPDATED CALL ---
+      // Pass the prepared ArrayBuffer directly. The packet size is 40.
+      const pcmData = await decodeMultipleOpusPackets(OPUS_ARRAY_BUFFER, 40);
+
+      console.log('Decoding successful, received Int16Array:', pcmData);
+      
+      // --- UPDATED RESULT HANDLING ---
+      // Displaying raw PCM data is not user-friendly. Show a success message instead.
+      setDecodedResult(`Success! Decoded ${pcmData.length} PCM samples.`);
+
     } catch (error) {
       console.error('Decoding failed:', error);
-      setDecodedResult(null); // Clear previous results on error
+      setDecodedResult(null);
       Alert.alert(
         'Decoding Error',
         error instanceof Error ? error.message : 'An unknown error occurred'
@@ -68,28 +76,28 @@ function App(): React.JSX.Element {
     setStreamResult(null);
     console.log('Attempting to stream decode...');
     try {
-      // Initialize stream decoder
+      // Initialize stream decoder (API is the same)
       const initResult = await initializeStreamDecoder(16000, 1);
       console.log('Stream decoder initialized:', initResult);
-      
+
       if (!initResult.success) {
         throw new Error(initResult.error || 'Failed to initialize stream decoder');
       }
 
-      // Create a sample frame from the base64 string (first 40 bytes)
-      const buffer = Buffer.from(BASE64_OPUS_STRING, 'base64');
-      const frameData = new Uint8Array(buffer.slice(0, 40));
-      
-      // Decode the frame
-      const decodeResult = await decodeOpusFrame(frameData);
-      console.log('Frame decode result:', decodeResult);
-      
-      if (decodeResult.success && decodeResult.pcmData) {
-        setStreamResult(`Stream decode succeeded! Decoded ${decodeResult.samplesDecoded} samples. PCM data length: ${decodeResult.pcmData.length}`);
-      } else {
-        throw new Error(decodeResult.error || 'Failed to decode frame');
-      }
-      
+      // --- UPDATED FRAME PREPARATION ---
+      // Create a single frame from our ArrayBuffer (first 40 bytes)
+      const frameData = new Uint8Array(OPUS_ARRAY_BUFFER.slice(0, 40));
+
+      // --- UPDATED CALL ---
+      // Decode the frame by passing the Uint8Array directly
+      const pcmDataFrame = await decodeOpusFrame(frameData);
+
+      console.log('Frame decode successful, received Float32Array:', pcmDataFrame);
+
+      // --- UPDATED RESULT HANDLING ---
+      // A successful promise returns the data directly. Failure throws an error.
+      setStreamResult(`Stream decode succeeded! Decoded ${pcmDataFrame.length} float samples.`);
+
     } catch (error) {
       console.error('Stream decoding failed:', error);
       setStreamResult(null);
@@ -117,7 +125,7 @@ function App(): React.JSX.Element {
           disabled={isLoading}
         >
           <Text style={[styles.buttonText, isDarkMode ? styles.buttonTextDark : styles.buttonTextLight]}>
-            {isLoading ? 'Decoding...' : 'Decode Opus String'}
+            {isLoading ? 'Decoding...' : 'Decode Opus Buffer'}
           </Text>
         </Pressable>
         {decodedResult && (
@@ -137,7 +145,7 @@ function App(): React.JSX.Element {
           disabled={isStreamLoading}
         >
           <Text style={[styles.buttonText, isDarkMode ? styles.buttonTextDark : styles.buttonTextLight]}>
-            {isStreamLoading ? 'Stream Decoding...' : 'Test Stream Decode'}
+            {isStreamLoading ? 'Decoding...' : 'Test Stream Decode'}
           </Text>
         </Pressable>
         {streamResult && (
@@ -150,6 +158,7 @@ function App(): React.JSX.Element {
   );
 }
 
+// Styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -158,29 +167,29 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   button: {
-    borderRadius: 12, // rounded-2xl equivalent
+    borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 32,
     marginBottom: 20,
-    shadowOffset: { width: 0, height: 4 }, // Subtle shadow
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 5, // for Android
+    elevation: 5,
   },
   buttonDark: {
-    backgroundColor: '#FFFFFF', // White button on dark bg
-    shadowColor: '#FFFFFF', // White shadow
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
   },
   buttonLight: {
-    backgroundColor: '#000000', // Black button on light bg
-    shadowColor: '#000000', // Black shadow
+    backgroundColor: '#000000',
+    shadowColor: '#000000',
   },
   buttonDarkPressed: {
-     backgroundColor: '#EAEAEA', // Slightly darker white on press
-     transform: [{ scale: 0.98 }], // Subtle scale down
+     backgroundColor: '#EAEAEA',
+     transform: [{ scale: 0.98 }],
   },
   buttonLightPressed: {
-     backgroundColor: '#333333', // Slightly lighter black on press
+     backgroundColor: '#333333',
      transform: [{ scale: 0.98 }],
   },
   buttonDisabled: {
@@ -188,15 +197,15 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: '600', // semibold
-    letterSpacing: 0.5, // tracking-wide approximation
+    fontWeight: '600',
+    letterSpacing: 0.5,
     textAlign: 'center',
   },
   buttonTextDark: {
-    color: '#000000', // Black text
+    color: '#000000',
   },
   buttonTextLight: {
-     color: '#FFFFFF', // White text
+     color: '#FFFFFF',
   },
   resultText: {
     marginTop: 20,
@@ -205,10 +214,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   resultTextDark: {
-    color: '#D8D8D8', // Light gray text
+    color: '#D8D8D8',
   },
   resultTextLight: {
-    color: '#333333', // Dark gray text
+    color: '#333333',
   },
 });
 
