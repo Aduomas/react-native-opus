@@ -20,7 +20,7 @@ import {
   decodeMultipleOpusPackets,
   initializeStreamDecoder,
   decodeOpusFrame,
-} from 'react-native-opus'; // Assuming your library is 'react-native-opus'
+} from 'react-native-opus';
 import { Buffer } from 'buffer'; // Import Buffer to handle Base64 decoding
 
 // --- Data Preparation ---

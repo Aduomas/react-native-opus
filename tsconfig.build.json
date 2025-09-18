@@ -1,12 +1,4 @@
-// tsconfig.build.json
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": false,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "outDir": "./lib/typescript"
-  },
-  "include": ["src"],
-  "exclude": ["example", "**/__tests__"]
+  "extends": "./tsconfig",
+  "exclude": ["example"]
 }
